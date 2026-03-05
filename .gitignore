@@ -1,0 +1,7 @@
+# R
+.RHistory
+.RData
+.Rproj.user/
+
+# Jupyter
+.ipynb_checkpoints/
