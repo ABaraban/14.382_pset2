@@ -1,6 +1,5 @@
 # This empirical example estimates the CCAPM model of Hansen and Singleton (1982, ECMA) to illustrate the GMM estimation of 
 # nonlinear models
-# Authors: V. Chernozhukov and I. Fernandez-Val
 
 # Data sources: Saint Louis Fed and Yahoo Finance
 # URL: https://www.stlouisfed.org/, http://finance.yahoo.com/
@@ -11,17 +10,16 @@
 # - CNP16OV: Civilian Noninstitutional Population (thousands of persons) from FED
 # - GS1: annualized 1-Year Treasury Constant Maturity Rate from FED
 # - SP500: S&P 500 index at closing price of the last day of the month, ^GSPC from Yahoo Finance
-
-# Updated on 03/06/2015
-
 ####################
 
-# Part I: Processing Data
-
+##############################################################################
+# Processing Data
+##############################################################################
 library(AER)
 library(sandwich)
 library(gmm)
 library(quantmod)
+library(xtable) 
 
 # Reading the data
  raw.data = as.data.frame(read.csv("data/ccapm-long.csv", header=T ))
@@ -48,13 +46,16 @@ dev.off()
 
 write.csv(Ret,file="data/ccapm-ready-to-use.csv",row.names=FALSE)
 
+# We use the same cleaned file as the lecture notes
 Ret= read.csv(file="data/ccapm-long_mert.csv", header=T)
 attach(Ret)
 str(Ret)
 summary(Ret)
 
 
-############  Score Functions #####################
+##############################################################################
+# Score Functions 
+##############################################################################
 # the score function here returns the n by m  matrix of scores to be used in gmm package; 
 # i.e., the return the m- vector of scores g(X_i, \theta) evaluated at each data point X_i
 # for each observation i=1,...,N 
@@ -74,16 +75,15 @@ g2.x.theta = function(theta, x)
   return (cbind( score.1, score.2))    # output m by n matrix of scores
 }
 
-##################
+##############################################################################
+# Replicate Lecture as Sanity Check 
+##############################################################################
 
 # Estimation with  Instruments = 1 lag of consumption and stock returns
-
 y     = na.omit(cbind(Rc, Rb, Rm))
 nlags = 1
 z    = cbind(1, Lag(y[ ,1], c(1:nlags)), Lag(y[ ,2], c(1:nlags)), Lag(y[ ,3], c(1:nlags)))
 x    = na.omit(cbind(y,z))
-
-
 
 # GMM fit
 gmm2.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1), method = "BFGS" ,  type="iter", vcov="iid"))
@@ -94,7 +94,6 @@ gmm2.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,.5),  type="cue",  vcov="i
 print(gmm2.cue.fit)
 
 # Estimation with Instrument = 1 lag of Consumption and Market Returns and Squares and Interactions 
-
 y     = na.omit(cbind(Rc, Rb, Rm))
 nlags = 1
 z    = cbind(Lag(y[ ,1], c(1:nlags)), Lag(y[ ,2], c(1:nlags)), Lag(y[ ,3], c(1:nlags)))
@@ -110,12 +109,7 @@ print(gmm2.zsq.fit)
 gmm2.zsq.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1), type="cue", vcov="iid"))
 print(gmm2.zsq.cue.fit)
 
-
-######### Printing the results####################
-
-library(xtable)  #package to generate nice latex tables
-
-
+# Printing the results
 tableJ= matrix(0, ncol=4, nrow=2)
 tableJ[,1]= gmm2.fit$stest[[2]]
 tableJ[,2]= gmm2.cue.fit$stest[[2]]
@@ -139,7 +133,7 @@ rownames(tableE)= c("estimated beta", "std error beta",  "estimated alpha", "std
 
 #output tables in latex format
 
-xtable(tableE, digits=4, align=c(rep("c", 5)))
-xtable(tableJ, digits=3, align=c(rep("c", 5)))
+print(xtable(tableE, digits=4, align=c(rep("c", 5))), file="output/ccapm_replication_coefs.tex")
+print(xtable(tableJ, digits=3, align=c(rep("c", 5))), file="output/ccapm_replication_coefs.tex")
 
 
