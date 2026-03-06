@@ -1,0 +1,238 @@
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage{amsmath,amssymb,amsthm} % Math stuff
+\usepackage{enumitem} % For improved lists
+\usepackage{fancyhdr} % For headers
+\usepackage{geometry} % Page geometry
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\geometry{margin=1in}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage[colorlinks=true, 
+    linkcolor=blue, 
+    citecolor=blue, 
+    urlcolor=blue, 
+    filecolor=blue]{hyperref}
+
+% Header
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Asher Baraban, Matej Cerman \\ Martin Hiti}
+\chead{14.382}
+\rhead{Problem Set 2}
+\cfoot{\thepage}
+
+\newtheorem{theorem}{Theorem}[section]
+
+% For easier problem/solution environments
+\newenvironment{problem}[1]
+    {\bigskip\noindent\textbf{Problem #1.}\par\setlength{\parindent}{0pt}}
+    {\medskip}
+\newenvironment{solution}[1]
+    {\bigskip\noindent\textbf{Solution #1.} \par}
+    {\medskip}
+
+\newcommand\barbelow[1]{\stackunder[1.2pt]{$#1$}{\rule{.8ex}{.075ex}}}
+
+% Citations
+\usepackage{natbib}
+\bibliographystyle{unsrtnat}
+
+% Math shortcuts
+\newcommand{\ev}{\mathbb{E}}
+\newcommand{\evn}{\mathbb{E}_n}
+\newcommand{\R}{\mathbb{R}}
+
+% Title
+\title{Problem Set 2 \\ 14.382}
+\author{Asher Baraban, Matej Cerman, Martin Hiti}
+\date{\today}
+
+% Document
+\begin{document}
+
+
+\maketitle
+
+\noindent \textit{Notes}:
+\begin{itemize}
+    \item All code is in \url{https://github.com/ABaraban/14.382_pset2}
+    \item All three group members took 14.381 last semester
+\end{itemize}
+
+\subsection*{Chapter 4} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{problem}{4.2}
+Provide an explanation addressing the concern of Professor
+Cox by writing a simulation program that simulates (a) demand
+and supply shifters, (b) demand and supply shocks,
+and (c) computes equilibrium supply/demand prices. You
+can answer the estimation question below using this simulated
+data instead of simulation data that we provide.
+\end{problem}
+
+\begin{solution}{1.1}
+
+
+\end{solution} 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{4.3 (Asher)}
+Consider the regression model $Y= X'\theta_0 + \epsilon$, $\epsilon \perp X$. Analyze
+estimation of the regression parameter $\theta_0$ from the
+GMM point of view: write the score function, write the GMM
+estimator, write its asymptotic distribution. Compare your
+results to the standard results on OLS estimator of $\theta_0$.
+
+\end{problem}
+
+
+\begin{solution}{4.3}
+From the GMM point of view, the orthogonality condition provides a natural moment to construct the score function.
+\[g(X,\theta) = (Y-X'\theta)X\]
+By the orthogonality condition we have that
+\[g(X,\theta_0) = (Y-X'\theta_0)X = \epsilon X = 0\]
+Note, we assume that $X$ contains an intercept.
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta}\hat{g}(\theta)'\hat{A}\hat{g}(\theta)\]
+
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{4.4 (Asher)}
+Work through the proof of Theorem 4.4.1 (part 1) several
+times. Write down the proof by memory, without looking at
+the notes.
+\end{problem}
+
+\begin{solution}{4.4}
+\textbf{Theorem} Consider the linear GMM problem where dimensions $d$ and $m$ are fixed, and assume that we have $\hat{A} \to^p A >0$. Suppose that the law of large numbers holds, namely $\hat{G} \to^p G$, where $G$ is of full column rank. Suppose also that the central limit theorem holds, namely 
+\[\sqrt{n}\hat{g}(\theta_0) \sim^a N(0, \Omega)\]
+Then we have that 
+\begin{itemize}
+    \item $\sqrt{n}(\hat{\theta} - \theta_0) \approx M\sqrt{n}\hat{g}(\theta_0) \sim^a MN(0, \Omega) = N(0, V_A)$ where \\ $M=-(G'AG)^{-1}G'A, \sqrt{n}\hat{g}(\theta_0) \sim^a N(0, \Omega)$ and $V_A=M\Omega M'$. If $A=\Omega^{-1}$, \\
+    then $V_A=V_{\Omega^{-1}} = (G'\Omega^{-1}G)^{-1}$. 
+    \item When $\{X_i\}_{i=1}^{\infty}$ are i.i.d copies of $X$ where $X$ does not depend on $n$, it suffices to have $E||G(X)||^2 + ||g(X,0)||^2<\infty$ for $\hat{G} \to^p G$, $\hat{A} =\hat{\Omega}^{-1} \to^p A$ in the 2 step GMM, and $\sqrt{n}\hat{g}(\theta_0) \sim^a N(0, \Omega)$. 
+
+    \textbf{Proof} \\
+    The first order condition of the GMM problem is 
+    \[0 = \hat{G}'\hat{A}\hat{g}(\hat{\theta})\]
+    The FOC characterizes the optimum as the objective function is quadratic. We can substitute in $\hat{g}(\hat{\theta}) = \hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)$
+    \[0 = \hat{G}'\hat{A}\left(\hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)\right)\]
+    We will next show that with probability approaching $1$, we can solve these equations for the deviation of the estimator from the estimand.
+    \[\sqrt{n}(\hat{\theta}-\theta_0) = \hat{M}\sqrt{n}\hat{g}(\theta_0)\] where $\hat{M} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}$. By the LLN and the continuous mapping theorem, we have $\hat{M} = M + o_p(1)$ where $M=-(G'AG)^{-1}G'A$. This gives us the result that 
+    \[\sqrt{n}(\hat{\theta}- \theta_0) = (M+o_p(1))\sqrt{n}\hat{g}(\theta_0)\]
+    
+\end{itemize}
+    
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{4.7}
+Replicate estimation results for the simulated Fulton fish
+market data, which is provided. Explain limited information
+GMM estimators as well as full information GMM.
+\end{problem}
+
+\begin{solution}{4.7}
+
+        
+\end{solution}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\subsection*{Chapter 5}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{problem}{5.4}
+Work with the Hansen-Singleton model. Describe how the Euler equations lead to conditional moment restrictions and how conditional moment restrictions yield unconditional moments. Explain how you can set up the score functions for GMM estimation and properties of the resulting estimator. Provide primitive regularity conditions that imply condition $G.$ This will entail explicityly stating the mixing conditions. State the large sample properties of the GMM estimator. 
+\end{problem}
+
+\begin{solution}{5.4}
+
+\cite{hs1982gmm} developed a framework for estimating the preferences of an optimizing agent and for testing the validity of the model. Specifically, the authors focus on a canonical model in macroeconomics and finance in which a representative agent maximizes expected utility over random consumption streams
+\begin{align*}
+    \max \ev \sum_{t=0}^\infty \beta^t U(C_t)
+\end{align*}
+subject to the sequence of budget constraints
+\begin{align*}
+    C_t + \sum_{j=1}^J P_{j,t} Q_{j,t} = \sum_{j=1}^J P_{j,t}Q_{j,t-1} +W_t \qquad t=0,1,\ldots
+\end{align*}
+where $C_t$ is consumption at time $t,$ $P_{j,t}$ is the price of of security $j$ at time $t$, $Q_{j,t}$ is the amount of security $j$ at time $t$, $Q_{j,t}$ is the amount of security $j$ at time $t$, $J$ is the number of securities, and $W_t$ is the labor income at time $t.$
+
+By solving for $C_t$ in the budget constraint, plugging into the objective function and taking the first order condition with respect to $Q_{j,t}$ we can characterize the optimum by:
+\begin{align}
+    &-\beta^t U'(C_t)P_{j,t} + \ev_{t}\left[\beta^{t+1}U'(C_{t+1})P_{j,t+1}\right] = 0 \qquad j= 1, \ldots, J \notag \\
+    \implies &P_{j,t} = \ev_t\left[\beta\frac{U'(C_{t+1})}{U'(C_t)} P_{j,t+1}\right] \qquad j= 1, \ldots, J \label{eq:ee}
+\end{align}
+where $\ev_t$ is the expectation conditional on the information available at time $t.$ Equation (\ref{eq:ee}) is referred to as a Euler equation and is the at the heart of the consumption-based capital asset pricing model (CCAPM) that \cite{hs1982gmm} want to test. It says that today's price for security $j$ is the conditional expected value of it price tomorrow $P_{j,t+1}$ and a stocahstic discount factor $\beta U'(C_{t+1})/U'(C_t)$ which depends on the ratio of marginal utilities. 
+
+We can now take a number of steps to re-express this optimizing behavior as a set of conditional moment equations, one for each asset $j$. To do so, first define $R_{j,t+1} \coloneq P_{j,t+1} / P_{j,t},$ which we can assume to be stationary, and represent $\ev_t$ as $\ev[\cdot | Z_t],$ where $Z_t$ are the variables that represent the information available at time $t.$ Then, we have that 
+\begin{align*}
+    \ev\left[\beta\frac{U'(C_{t+1})}{U'(C_t)} R_{j,t+1}- 1\bigg| Z_t \right] \qquad j = 1, \ldots,J
+\end{align*}
+To set up estimation in the GMM framework we specify a parametric form for the utility function. \cite{hs1982gmm} use a power utility $U(x) = x^{1-\alpha}/(1-\alpha)$ which implies that $U'(x) = x^{-\alpha}.$ The parameter $\alpha$ is the constant relative risk aversion (and $1/\alpha$ is the elasticity of intertemporal substitution). 
+
+
+\begin{itemize}
+    \item 
+
+\end{itemize}
+
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{3.2}
+
+\end{problem}
+
+\begin{solution}{3.2}
+
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{3.5}
+
+\end{problem}
+
+\begin{solution}{3.5}
+
+\end{solution}
+
+\subsection*{Chapter 6}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\bibliography{sources}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
