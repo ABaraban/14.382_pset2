@@ -67,7 +67,7 @@
 \subsection*{Chapter 4} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{problem}{4.2}
+\begin{problem}{4.2 (Matej)}
 Provide an explanation addressing the concern of Professor
 Cox by writing a simulation program that simulates (a) demand
 and supply shifters, (b) demand and supply shocks,
@@ -76,7 +76,8 @@ can answer the estimation question below using this simulated
 data instead of simulation data that we provide.
 \end{problem}
 
-\begin{solution}{1.1}
+\begin{solution}{4.2}
+
 
 
 \end{solution} 
@@ -153,6 +154,20 @@ GMM estimators as well as full information GMM.
 \input{fish/fish_table_demand}
 \input{fish/fish_table_supply}
 
+There are two approaches to GMM, limited and full information. The limited information approach is where we treat estimation of demand parameters and supply parameters separately. Therefore, there are 2 GMMs one for demand and one for supply. In the full information case, we estimate demand and supply parameters jointly using a joint weighting matrix. These two strategies boil down to a difference in the weighting matrix. In the limited information case our matrix is block diagonal.
+\[
+A =
+\left[
+\begin{array}{cc}
+\operatorname{Var}\, g_1(X,\alpha) & 0 \\
+0 & \operatorname{Var}\, g_2(X,\alpha)
+\end{array}
+\right]^{-1},
+\]
+However, in the full information case, we use the optimal weighting matrix. 
+\[A= [Var(g(X,\theta))]^{-1}\]
+
+
         
 \end{solution}
 
@@ -181,6 +196,7 @@ subject to the sequence of budget constraints
 \end{align*}
 where $C_t$ is consumption at time $t,$ $P_{j,t}$ is the price of of security $j$ at time $t$, $Q_{j,t}$ is the amount of security $j$ at time $t$, $Q_{j,t}$ is the amount of security $j$ at time $t$, $J$ is the number of securities, and $W_t$ is the labor income at time $t.$
 
+
 By solving for $C_t$ in the budget constraint, plugging into the objective function and taking the first order condition with respect to $Q_{j,t}$ we can characterize the optimum by:
 \begin{align}
     &-\beta^t U'(C_t)P_{j,t} + \ev_{t}\left[\beta^{t+1}U'(C_{t+1})P_{j,t+1}\right] = 0 \qquad j= 1, \ldots, J \notag \\
@@ -188,17 +204,43 @@ By solving for $C_t$ in the budget constraint, plugging into the objective funct
 \end{align}
 where $\ev_t$ is the expectation conditional on the information available at time $t.$ Equation (\ref{eq:ee}) is referred to as a Euler equation and is the at the heart of the consumption-based capital asset pricing model (CCAPM) that \cite{hs1982gmm} want to test. It says that today's price for security $j$ is the conditional expected value of it price tomorrow $P_{j,t+1}$ and a stocahstic discount factor $\beta U'(C_{t+1})/U'(C_t)$ which depends on the ratio of marginal utilities. 
 
-We can now take a number of steps to re-express this optimizing behavior as a set of conditional moment equations, one for each asset $j$. To do so, first define $R_{j,t+1} \coloneq P_{j,t+1} / P_{j,t},$ which we can assume to be stationary, and represent $\ev_t$ as $\ev[\cdot | Z_t],$ where $Z_t$ are the variables that represent the information available at time $t.$ Then, we have that 
+\textbf{Deriving conditional moment restrictions:} We can now take a number of steps to re-express this optimizing behavior as a set of conditional moment equations, one for each asset $j$. To do so, first define $R_{j,t+1} \coloneq P_{j,t+1} / P_{j,t},$ which we can assume to be stationary, and represent $\ev_t$ as $\ev[\cdot | Z_t],$ where $Z_t$ are the variables that represent the information available at time $t.$ Then, we have that 
 \begin{align*}
     \ev\left[\beta\frac{U'(C_{t+1})}{U'(C_t)} R_{j,t+1}- 1\bigg| Z_t \right] \qquad j = 1, \ldots,J
 \end{align*}
-To set up estimation in the GMM framework we specify a parametric form for the utility function. \cite{hs1982gmm} use a power utility $U(x) = x^{1-\alpha}/(1-\alpha)$ which implies that $U'(x) = x^{-\alpha}.$ The parameter $\alpha$ is the constant relative risk aversion (and $1/\alpha$ is the elasticity of intertemporal substitution). 
+To set up estimation in the GMM framework we specify a parametric form for the utility function. \cite{hs1982gmm} use a power utility $U(x) = x^{1-\alpha}/(1-\alpha)$ which implies that $U'(x) = x^{-\alpha}.$\footnote{The parameter $\alpha$ is the constant relative risk aversion (and $1/\alpha$ is the elasticity of intertemporal substitution).} Letting $c_{t+1} = C_{t+1}/C_t$ we can re-write the conditions as 
+\begin{align*}
+    \ev\left[R_{j,t+1}\beta c_{t+1}^{-\alpha} - 1 | Z_t\right] = 0 \qquad j = 1, \ldots, J
+\end{align*}
+With some book-keeping, we can translate this conditional moment restriction in the the notation of GMM. Let $Y_t = \{c_{t+1}, R_{1, t+1}, \ldots, R_{J,t+1} \}$ collect observables, and then define
+\begin{align*}
+    \rho(Y_t, \theta) \coloneq \left[\rho_j(Y_t,\theta) \right]_{j=1}^J \coloneq \left[R_{j,t+1}bc_{t+1}^{-a} - 1 \right] \qquad \theta = (a,b)'
+\end{align*}
+Letting $\theta_0 \coloneq(\alpha,\beta)$ be the vector of true parameters, we have the conditional moment restriction
+\begin{align*}
+    \ev[\rho(Y_t,\theta_0) | Z_t] = 0
+\end{align*}
+
+\textbf{Deriving unconditional moment restrictions:} Now we seek to convert these conditional moment restriction into unconditional moment restrictions. To do so, let
+\begin{align*}
+    B(Z_t) \coloneq [B_1(Z_t), \ldots,B_r(Z_t)]'
+\end{align*}
+be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t):$
+\begin{align*}
+    \rho(Y_t,\theta_0) \otimes
+\end{align*}
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\begin{itemize}
-    \item 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\begin{problem}{5.6}
 
-\end{itemize}
+\end{problem}
+
+\begin{solution}{5.6}
 
 
 \end{solution}
@@ -207,30 +249,28 @@ To set up estimation in the GMM framework we specify a parametric form for the u
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\begin{problem}{3.2}
-
-\end{problem}
-
-\begin{solution}{3.2}
-
-
-\end{solution}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\begin{problem}{3.5}
-
-\end{problem}
-
-\begin{solution}{3.5}
-
-\end{solution}
 
 \subsection*{Chapter 6}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{problem}{6.1}
+
+\end{problem}
+
+\begin{solution}{6.1}
+
+
+\end{solution}
+
+
+\begin{problem}{6.2}
+
+\end{problem}
+
+\begin{solution}{6.2}
+
+
+\end{solution}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
