@@ -80,7 +80,9 @@ data instead of simulation data that we provide.
 
 While Professor Cox's conclusion sounds reasonable at first (it seems impossible to simulate $y$ from $x$ and $x$ from $y$), in the context of economic systems with multiple optimizing agents (with each agent's optimization typically yielding an equilibrium restriction), we can do so.
 
+In this case, the two variables of interest are a (log) price $p$ and a (log) quantity bought and sold $q$. The two variables interact through supply and demand curves, which means that there isn't a single direction of causality. As an example, consider an upward shift in supply starting from some equilibrium $(p^*,q^*)$. This raises the (counterfactual) quantity produced at the price $p^*$, which will lower $p^*$ to $p'<p^*$, leading to a higher quantity demanded $q'>q^*$ that we'll observe (but lower than what would be implied by the supply curve holding prices fixed).
 
+To show that we can simulate such a system, 
 
 \begin{figure}[h!]
     \centering
@@ -231,12 +233,14 @@ Letting $\theta_0 \coloneq(\alpha,\beta)$ be the vector of true parameters, we h
 
 \textbf{Deriving unconditional moment restrictions:} Now we seek to convert these conditional moment restriction into unconditional moment restrictions. To do so, let
 \begin{align*}
-    B(Z_t) \coloneq [B_1(Z_t), \ldots,B_r(Z_t)]'
+    B(Z_t) \coloneq [B_1(Z_t), \ldots,B_r(Z_t)]' \in \R^r
 \end{align*}
-be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t):$
+be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t)$, which will be a column vector of length $Jm$ where each ent
 \begin{align*}
     \rho(Y_t,\theta_0) \otimes B(Z_t)
 \end{align*}
+For example, in 
+
 
 \end{solution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
