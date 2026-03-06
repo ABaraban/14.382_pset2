@@ -188,7 +188,9 @@ ggplot() +
   labs(
     title = "Supply and Demand System Simulation",
     x = "log Price",
-    y = "log Quantity"
+    y = "log Quantity",
+    color = "Model",
+    fill = "Model"
   )
 
 ggsave(
