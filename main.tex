@@ -78,7 +78,15 @@ data instead of simulation data that we provide.
 
 \begin{solution}{4.2}
 
+While Professor Cox's conclusion sounds reasonable at first (it seems impossible to simulate $y$ from $x$ and $x$ from $y$), in the context of economic systems with multiple optimizing agents (with each agent's optimization typically yielding an equilibrium restriction), we can do so.
 
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{output/problem_4_2_plot.png}
+    \caption{Simultaneous simulation of prices and quantities in a supply-demand equation system}
+\end{figure}
 
 \end{solution} 
 
@@ -227,7 +235,7 @@ Letting $\theta_0 \coloneq(\alpha,\beta)$ be the vector of true parameters, we h
 \end{align*}
 be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t):$
 \begin{align*}
-    \rho(Y_t,\theta_0) \otimes
+    \rho(Y_t,\theta_0) \otimes B(Z_t)
 \end{align*}
 
 \end{solution}
