@@ -180,8 +180,8 @@ ggplot() +
   geom_line(data = pred_all, aes(x=x, y = predicted, color = model)) +
   geom_ribbon(data = pred_all, aes(x=x, ymin = conf.low, ymax = conf.high, fill = model), alpha = 0.2) +
   theme_minimal() + 
-  xlim(-4,4) +
-  ylim(-4,4) + 
+  xlim(-5,5) +
+  ylim(-5,5) +
   theme(
     legend.position = "bottom"
   ) +
