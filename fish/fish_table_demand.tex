@@ -1,0 +1,19 @@
+% requires: \usepackage{booktabs}
+
+\begin{table}[htbp]
+\centering
+\caption{Estimates with 95\% confidence intervals}
+\label{tab:estimates2}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Est. & Std. Error & 95\% LCI & 95\% UCI \\
+\midrule
+LI-OLS    & -0.50 & 0.045 & -0.58 & -0.41 \\
+LI-TSLS   & -0.92 & 0.115 & -1.14 & -0.69 \\
+LI-3SLS   & -0.92 & 0.115 & -1.14 & -0.69 \\
+FI-3SLS   & -0.93 & 0.112 & -1.15 & -0.71 \\
+FI2-3SLS  & -0.94 & 0.111 & -1.16 & -0.72 \\
+LI2-3SLS  & -0.92 & 0.115 & -1.14 & -0.69 \\
+\bottomrule
+\end{tabular}
+\end{table}
