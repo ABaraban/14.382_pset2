@@ -21,6 +21,9 @@ library(gmm)
 library(quantmod)
 library(xtable) 
 
+# WD
+setwd("/Users/martinhiti/Desktop/courses/14382/14.382_pset2")
+
 # Reading the data
  raw.data = as.data.frame(read.csv("data/ccapm-long.csv", header=T ))
  attach(raw.data)
@@ -47,6 +50,7 @@ dev.off()
 write.csv(Ret,file="data/ccapm-ready-to-use.csv",row.names=FALSE)
 
 # We use the same cleaned file as the lecture notes
+## Not sure why we created the ready to use file and then don't use it tho
 Ret= read.csv(file="data/ccapm-long_mert.csv", header=T)
 attach(Ret)
 str(Ret)
@@ -90,7 +94,7 @@ gmm2.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1), method = "BFGS" ,  type="i
 print(gmm2.fit)
 
 # CUE fit
-gmm2.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,.5),  type="cue",  vcov="iid"))
+gmm2.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1),  type="cue",  vcov="iid"))
 print(gmm2.cue.fit)
 
 # Estimation with Instrument = 1 lag of Consumption and Market Returns and Squares and Interactions 
@@ -134,6 +138,67 @@ rownames(tableE)= c("estimated beta", "std error beta",  "estimated alpha", "std
 #output tables in latex format
 
 print(xtable(tableE, digits=4, align=c(rep("c", 5))), file="output/ccapm_replication_coefs.tex")
-print(xtable(tableJ, digits=3, align=c(rep("c", 5))), file="output/ccapm_replication_coefs.tex")
+print(xtable(tableJ, digits=3, align=c(rep("c", 5))), file="output/ccapm_replication_J.tex")
+
+##############################################################################
+# Homework
+# (a) Use only an intercept as an instrument
+# (b) Use an intercept and on lag of each return (stock and bond) as instrument
+##############################################################################
+
+# (a) Estimation with instruments = intercept
+y    = na.omit(cbind(Rc, Rb, Rm)) # outcomes
+z    = 1
+x    = na.omit(cbind(y,z))
+
+# GMM (a) fit
+gmm.a.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1), method = "BFGS" ,  type="iter", vcov="iid"))
+print(gmm.a.fit)
+
+# CUE (a) fit
+gmm.a.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1),  type="cue",  vcov="iid"))
+print(gmm.a.cue.fit)
+
+
+# (b) Estimation with instrument = 1 lag of stock return and 1 lag of bond returns
+y     = na.omit(cbind(Rc, Rb, Rm))
+nlags = 1
+z    = cbind(1, Lag(y[ ,2], c(1:nlags)), Lag(y[ ,3], c(1:nlags)))
+x   = na.omit(cbind(y,z))
+
+# GMM (b) fit
+gmm.b.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1),  vcov="iid", type="iter"))
+print(gmm.b.fit)
+
+# CUE fit
+gmm.b.cue.fit  = summary(gmm(g2.x.theta, x, t0 = c(.99,1), type="cue", vcov="iid"))
+print(gmm.b.cue.fit)
+
+# Printing the results
+
+# Only show J-test for (b). With (a) we have m=d so no overidentification
+tableJ= matrix(0, ncol=2, nrow=2)
+tableJ[,1]= gmm.b.fit$stest[[2]]
+tableJ[,2]= gmm.b.cue.fit$stest[[2]]
+colnames(tableJ)= c("GMM-(b)", "CUE-(b)")
+rownames(tableJ)= c("J-statistic", "p-value")
+
+# Coefficients + SEs for (a) and (b)
+tableE= matrix(0, ncol=4, nrow=4);
+tableE[c(1:2),1]= gmm.a.fit$coef[1,c(1:2)]
+tableE[c(3:4),1]= gmm.a.fit$coef[2,c(1:2)]
+tableE[c(1:2),2]= gmm.a.cue.fit$coef[1,c(1:2)]
+tableE[c(3:4),2]= gmm.a.cue.fit$coef[2,c(1:2)]
+tableE[c(1:2),3]= gmm.b.fit$coef[1,c(1:2)]
+tableE[c(3:4),3]= gmm.b.fit$coef[2,c(1:2)]
+tableE[c(1:2),4]= gmm.b.cue.fit$coef[1,c(1:2)]
+tableE[c(3:4),4]= gmm.b.cue.fit$coef[2,c(1:2)]
+
+colnames(tableE)= c("GMM-(a)", "CUE-(a)", "GMM-(b)", "CUE-(b)")
+rownames(tableE)= c("estimated beta", "std error beta",  "estimated alpha", "std error for alpha")
+
+# Output tables in latex format
+print(xtable(tableE, digits=4, align=c(rep("c", 5))), file="output/ccapm_hw_coefs.tex")
+print(xtable(tableJ, digits=3, align=c(rep("c", 3))), file="output/ccapm_hw_J.tex")
 
 
