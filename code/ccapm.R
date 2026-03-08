@@ -198,7 +198,12 @@ colnames(tableE)= c("GMM-(a)", "CUE-(a)", "GMM-(b)", "CUE-(b)")
 rownames(tableE)= c("estimated beta", "std error beta",  "estimated alpha", "std error for alpha")
 
 # Output tables in latex format
-print(xtable(tableE, digits=4, align=c(rep("c", 5))), file="output/ccapm_hw_coefs.tex")
-print(xtable(tableJ, digits=3, align=c(rep("c", 3))), file="output/ccapm_hw_J.tex")
+print(xtable(tableE, digits=4, align=c("l", rep("c", 4))), floating = FALSE, file="output/ccapm_hw_coefs.tex")
+print(xtable(tableJ, digits=3, align=c("l", rep("c", 2))), floating = FALSE, file="output/ccapm_hw_J.tex")
 
 
+# Diagnostics
+df <- as.data.frame(x)
+colnames(df) <- c("Rc","Rb","Rm","int","Rb_l1", "Rb_l2")
+first_stage <- lm(Rc ~ Rb_l1 + Rb_l2, data = df)
+summary(first_stage)
