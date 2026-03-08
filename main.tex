@@ -67,7 +67,7 @@
 \subsection*{Chapter 4} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{problem}{4.2 (Matej)}
+\begin{problem}{4.2}
 Provide an explanation addressing the concern of Professor
 Cox by writing a simulation program that simulates (a) demand
 and supply shifters, (b) demand and supply shocks,
@@ -82,7 +82,38 @@ While Professor Cox's conclusion sounds reasonable at first (it seems impossible
 
 In this case, the two variables of interest are a (log) price $p$ and a (log) quantity bought and sold $q$. The two variables interact through supply and demand curves, which means that there isn't a single direction of causality. As an example, consider an upward shift in supply starting from some equilibrium $(p^*,q^*)$. This raises the (counterfactual) quantity produced at the price $p^*$, which will lower $p^*$ to $p'<p^*$, leading to a higher quantity demanded $q'>q^*$ that we'll observe (but lower than what would be implied by the supply curve holding prices fixed).
 
-To show that we can simulate such a system, 
+To show that we can simulate such a system, we first simulate variables:
+\[
+Z^d_i \sim \mathcal{N}(\vec{0}, \vec{1}), \qquad Z^s_i \sim \mathcal{N}(\vec{0}, \vec{1}), \qquad W_i \sim \mathcal{N}(\vec{0}, \vec{1}), \qquad \varepsilon^d_i \sim \mathcal{N}(0,1), \qquad \varepsilon^s_i \sim \mathcal{N}(0,1)
+\]
+
+where we can choose the dimensions of supply and demand shifters $Z^d,Z^s$ as well as common shifters $W$ arbitrarily.
+
+We can then pick any coefficients (though we will only consider $\alpha_1<0$, $\beta_1<0$ to model an economically interesting situation) for the demand and supply curves (functions of the price that relate quantities demanded/supplied to prices for any given draw of $Z_i^d,Z_i^s,W,\varepsilon_i^d,\varepsilon_i^s$):
+\[
+q^d_i(p_i) = \alpha_1 p_i + \alpha_2^\top Z_i^d + \alpha_3^\top W_i + \varepsilon^d_i
+\]
+\[
+q^s_i(p_i) = \beta_1 p_i + \beta_2^\top Z_i^s + \beta_3^\top W_i + \varepsilon^s_i
+\]
+
+These structural equations then let us simulate the equilibrium price and quantity for draw $i$. To do so we can impose that supply = demand in equilibrium, so:
+\[
+q^d_i(p_i) = q^s_i(p_i) \implies \alpha_1 p_i + \alpha_2^\top Z_i^d + \alpha_3^\top W_i + \varepsilon^d_i = \beta_1 p_i + \beta_2^\top Z_i^s + \beta_3^\top W_i + \varepsilon^s_i
+\]
+
+Which lets us solve for the price as:
+\[
+p_i^* = \frac{\left[\alpha_2^\top Z_i^d + \alpha_3^\top W_i + \varepsilon^d_i \right] - \left[\beta_2^\top Z_i^s + \beta_3^\top W_i + \varepsilon^s_i \right] }{\beta_1-\alpha_1}
+\]
+
+And then we can plug the price back into either equation to obtain the equilibrium $q_i^*(p_i^*)$.
+
+To demonstrate the results of this exercise in the plot below, we parametrized $\alpha_1 = -0.8$ and $\beta_1=1.1$ (note that with log quantities and prices, these coefficients are the respective elasticities of demand and supply). We then drew $N=1000$ samples $i$, computed the equilibrium price and quantity for each (shown in the plot), and recorded the other variables too. We used two demand shifters (instruments for estimating a supply curve) and three supply shifters (instruments for estimating a demand curve), and a one-dimensional common shifter.
+
+As discussed in lecture, simply running an OLS regression $q^*_i = \delta_1 p_i^* + \delta_2W_i+ \varepsilon_i$ won't recover either the supply or the demand curve; in this example, we get a coefficient close to zero. We then also plot the slopes of two separate 2SLS estimates, which estimate the supply curve using demand shifters as instruments and vice versa. By construction, the instruments are strong; we get first-stage $F$-stats of $185$ and $250$ respectively. The estimated elasticities are $\hat \alpha_1 = -0.63$ and $\hat \beta_1 = 0.93$
+
+Simulation code is provided in the GiHub repo linked above.
 
 \begin{figure}[h!]
     \centering
@@ -101,7 +132,7 @@ To show that we can simulate such a system,
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\begin{problem}{4.3 (Asher)}
+\begin{problem}{4.3}
 Consider the regression model $Y= X'\theta_0 + \epsilon$, $\epsilon \perp X$. Analyze
 estimation of the regression parameter $\theta_0$ from the
 GMM point of view: write the score function, write the GMM
@@ -112,18 +143,39 @@ results to the standard results on OLS estimator of $\theta_0$.
 
 
 \begin{solution}{4.3}
+First, assume $Y \in \mathbb{R}$, $X \in \mathbb{R}^{k \times 1}$, $\theta \in \mathbb{R}^{k \times 1}$ to make dimensions clear. 
 From the GMM point of view, the orthogonality condition provides a natural moment to construct the score function.
 \[g(X,\theta) = (Y-X'\theta)X\]
-By the orthogonality condition we have that
-\[g(X,\theta_0) = (Y-X'\theta_0)X = \epsilon X = 0\]
-Note, we assume that $X$ contains an intercept.
+By the orthogonality condition we have the necessary moment condition on the true parameter. Note, we assume that $X$ contains an intercept.
+\[g(X,\theta_0) = E\left[(Y-X'\theta_0)X\right] = E\left[\epsilon X\right] = 0\]
+Empirically, our score function for observation $i$ is
+\[g_i(X_i, \theta) = (Y_i - X_i'\theta)X_i\]
+So our score function is the vector of averages below
+\[\hat{g}(\theta) = \frac{1}{n}\sum_{i=1}^ng_i(X_i, \theta)\]
+Note that we have a moment for each dimension of $\theta$. We are exactly identified.
+
 \[\hat{\theta} \in \arg\min_{\theta \in \Theta}\hat{g}(\theta)'\hat{A}\hat{g}(\theta)\]
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta} \left(\frac{1}{n}\sum_{i=1}^n(Y_i - X_i'\theta)X_i\right)'\hat{A}\frac{1}{n}\sum_{i=1}^n(Y_i - X_i'\theta)X_i\]
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta} \sum_{i=1}^n\left[Y_iX_i - (X_i'\theta) X_i\right]'\hat{A}\sum_{i=1}^n\left[Y_iX_i - (X_i'\theta) X_i\right]\]
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta} \left[\sum_{i=1}^nY_iX_i - \sum_{i=1}^n(X_i'\theta) X_i\right]'\hat{A}\left[\sum_{i=1}^nY_iX_i - \sum_{i=1}^n(X_i'\theta) X_i\right]\]
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta} \left[\sum_{i=1}^nY_iX_i - \sum_{i=1}^nX_iX_i'\theta \right]'\hat{A}\left[\sum_{i=1}^nY_iX_i - \sum_{i=1}^nX_iX_i'\theta\right]\]
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta} (\sum_{i=1}^nY_iX_i)' \hat{A} \sum_{i=1}^n Y_iX_i - 2(\sum_{i=1}^nX_iX_i'\theta)'\hat{A}\sum_{i=1}^nY_iX_i +(\sum_{i=1}^nX_iX_i'\theta)'\hat{A} \sum_{i=1}^nX_iX_i'\theta\]
+We can drop the first term as it doesn't depend on $\theta$
+\[\hat{\theta} \in \arg\min_{\theta \in \Theta}  - 2\theta'\sum_{i=1}^nX_iX_i'\hat{A}\sum_{i=1}^nY_iX_i +\theta'\sum_{i=1}^n(X_iX_i')'\hat{A} \sum_{i=1}^nX_iX_i'\theta\]
+
+So now we take the FOC for $\theta$
+\[\frac{\partial}{\partial \theta} = -2\sum_{i=1}^nX_iX_i'\hat{A}\sum_{i=1}^nY_iX_i + 2\sum_{i=1}^n(X_iX_i')'\hat{A} \sum_{i=1}^nX_iX_i'\theta = 0 \]
+We can drop the $2$'s and pre-multiply by $(\sum_{i=1}^nX_iX_i'\hat{A})^{-1}$. 
+\[\frac{\partial}{\partial \theta} = \sum_{i=1}^nY_iX_i +  \sum_{i=1}^nX_iX_i'\theta = 0 \]
+Therefore, we get 
+\[\hat{\theta}  = (\sum_{i=1}^nX_iX_i')^{-1}\sum_{i=1}^nY_iX_i\]
+This is precisely the OLS estimator!
 
 
 \end{solution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\begin{problem}{4.4 (Asher)}
+\begin{problem}{4.4}
 Work through the proof of Theorem 4.4.1 (part 1) several
 times. Write down the proof by memory, without looking at
 the notes.
@@ -141,11 +193,17 @@ Then we have that
     \textbf{Proof} \\
     The first order condition of the GMM problem is 
     \[0 = \hat{G}'\hat{A}\hat{g}(\hat{\theta})\]
-    The FOC characterizes the optimum as the objective function is quadratic. We can substitute in $\hat{g}(\hat{\theta}) = \hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)$
+    The FOC characterizes the optimum as the objective function is quadratic. We can substitute in $\hat{g}(\hat{\theta}) = \hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)$.
     \[0 = \hat{G}'\hat{A}\left(\hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)\right)\]
-    We will next show that with probability approaching $1$, we can solve these equations for the deviation of the estimator from the estimand.
+   Since $G$ has full column rank and $A>0$, $G'AG$ is invertible. Since $\hat{G} \to^p G$ and $\hat{A} \to^p A$, by the continuous mapping theorem $\hat{G}'\hat{A}\hat{G}$ is invertible with probability approaching one. We will next show that with probability approaching $1$, we can solve these equations for the deviation of the estimator from the estimand. 
     \[\sqrt{n}(\hat{\theta}-\theta_0) = \hat{M}\sqrt{n}\hat{g}(\theta_0)\] where $\hat{M} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}$. By the LLN and the continuous mapping theorem, we have $\hat{M} = M + o_p(1)$ where $M=-(G'AG)^{-1}G'A$. This gives us the result that 
     \[\sqrt{n}(\hat{\theta}- \theta_0) = (M+o_p(1))\sqrt{n}\hat{g}(\theta_0)\]
+    By Slutsky's theorem, and that by CLT $\sqrt{n}\hat{g}(\theta_0) \sim^a N(0, \Omega)$ we get
+    \[\sqrt{n}(\hat{\theta} - \theta_0) \sim^a MN(0, \Omega) = N(0, M\Omega M') = N(0, V_A)\]
+    Substitute in $M=-(G'AG)^{-1}G'A$
+    \[M\Omega M' = (G'AG)^{-1}G'A \Omega A'G(G'AG)^{-1}\]
+    We know that optimally $A=\Omega^{-1}$
+    \[M\Omega M' = (G'\Omega^{-1}G)^{-1}G' \Omega^{-1}G(G'\Omega^{-1}G)^{-1} = (G'\Omega^{-1}G)^{-1}\]
     
 \end{itemize}
     
@@ -174,8 +232,13 @@ A =
 \end{array}
 \right]^{-1},
 \]
+\[\theta_{LI} = \]
 However, in the full information case, we use the optimal weighting matrix. 
 \[A= [Var(g(X,\theta))]^{-1}\]
+\[\theta_{FI} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}\hat{g}(0)\]
+
+
+Empirically, researchers often use the limited information approach despite the efficiency loss as it more robust to misspecification (which is inevitable in empirical studies).
 
 
         
@@ -191,7 +254,7 @@ However, in the full information case, we use the optimal weighting matrix.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{problem}{5.4}
-Work with the Hansen-Singleton model. Describe how the Euler equations lead to conditional moment restrictions and how conditional moment restrictions yield unconditional moments. Explain how you can set up the score functions for GMM estimation and properties of the resulting estimator. Provide primitive regularity conditions that imply condition $G.$ This will entail explicityly stating the mixing conditions. State the large sample properties of the GMM estimator. 
+Work with the Hansen-Singleton model. Describe how the Euler equations lead to conditional moment restrictions and how conditional moment restrictions yield unconditional moments. Explain how you can set up the score functions for GMM estimation and properties of the resulting estimator. Provide primitive regularity conditions that imply condition $G.$ This will entail explicitly stating the mixing conditions. State the large sample properties of the GMM estimator. 
 \end{problem}
 
 \begin{solution}{5.4}
@@ -214,7 +277,7 @@ By solving for $C_t$ in the budget constraint, plugging into the objective funct
 \end{align}
 where $\ev_t$ is the expectation conditional on the information available at time $t.$ Equation (\ref{eq:ee}) is referred to as a Euler equation and is the at the heart of the consumption-based capital asset pricing model (CCAPM) that \cite{hs1982gmm} want to test. It says that today's price for security $j$ is the conditional expected value of it price tomorrow $P_{j,t+1}$ and a stocahstic discount factor $\beta U'(C_{t+1})/U'(C_t)$ which depends on the ratio of marginal utilities. 
 
-\textbf{Deriving conditional moment restrictions:} We can now take a number of steps to re-express this optimizing behavior as a set of conditional moment equations, one for each asset $j$. To do so, first define $R_{j,t+1} \coloneq P_{j,t+1} / P_{j,t},$ which we can assume to be stationary, and represent $\ev_t$ as $\ev[\cdot | Z_t],$ where $Z_t$ are the variables that represent the information available at time $t.$ Then, we have that 
+\paragraph{Deriving conditional moment restrictions:} We can now take a number of steps to re-express this optimizing behavior as a set of conditional moment equations, one for each asset $j$. To do so, first define $R_{j,t+1} \coloneq P_{j,t+1} / P_{j,t},$ which we can assume to be stationary, and represent $\ev_t$ as $\ev[\cdot | Z_t],$ where $Z_t$ are the variables that represent the information available at time $t.$ Then, we have that 
 \begin{align*}
     \ev\left[\beta\frac{U'(C_{t+1})}{U'(C_t)} R_{j,t+1}- 1\bigg| Z_t \right] \qquad j = 1, \ldots,J
 \end{align*}
@@ -231,15 +294,165 @@ Letting $\theta_0 \coloneq(\alpha,\beta)$ be the vector of true parameters, we h
     \ev[\rho(Y_t,\theta_0) | Z_t] = 0
 \end{align*}
 
-\textbf{Deriving unconditional moment restrictions:} Now we seek to convert these conditional moment restriction into unconditional moment restrictions. To do so, let
+\paragraph{Deriving unconditional moment restrictions:} Now we seek to convert these conditional moment restriction into unconditional moment restrictions. To do so, let
 \begin{align*}
     B(Z_t) \coloneq [B_1(Z_t), \ldots,B_r(Z_t)]' \in \R^r
 \end{align*}
-be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t)$, which will be a column vector of length $Jm$ where each ent
+be a vector of transformations of $Z_t.$ Next, consider the Kronecker product of the conditional moments and $B(Z_t)$, which will be a column vector of length $J\cdot r$ formed by multiplying each element of $\rho(Y_t,\theta_0)$ by the entire vector $B(Z_t):$
 \begin{align*}
-    \rho(Y_t,\theta_0) \otimes B(Z_t)
+    \rho(Y_t,\theta_0) \otimes B(Z_t).
 \end{align*}
-For example, in 
+For example, if we consider two assets $J=2$ (e.g. US stock market index and a Treasury bond) and let the vector of technical instruments be $B(Z_t) = (1,c_t,R_{1,t}, R_{2,t})'$
+\[
+\rho(Y_t, \theta) \otimes B(Z_t) 
+= 
+\begin{pmatrix} \rho_1(Y_t, \theta) \\ \rho_2(Y_t, \theta) \end{pmatrix}
+\otimes
+\begin{pmatrix} 1 \\ c_t \\ R_{1,t} \\ R_{2,t} \end{pmatrix}
+=
+\begin{pmatrix} 
+\rho_1(Y_t,\theta) \cdot 1 \\ 
+\rho_1(Y_t,\theta) \cdot c_t \\ 
+\rho_1(Y_t,\theta) \cdot R_{1,t} \\ 
+\rho_1(Y_t,\theta) \cdot R_{2,t} \\ 
+\rho_2(Y_t,\theta) \cdot 1 \\ 
+\rho_2(Y_t,\theta) \cdot c_t \\ 
+\rho_2(Y_t,\theta) \cdot R_{1,t} \\ 
+\rho_2(Y_t,\theta) \cdot R_{2,t}
+\end{pmatrix}
+\in \mathbb{R}^{8}
+\]
+Taking the unconditional expectation
+\begin{align*}
+    \ev\left[\rho(Y_t, \theta_0) \otimes B(Z_t) \right]
+    &= \ev\left[ \ev\left[\rho(Y_t, \theta_0) \otimes B(Z_t) |Z_t\right] \right] &&\text{(law of iterated expectations)} \\
+    &= \ev\left[ \ev\left[\rho(Y_t, \theta_0)  |Z_t\right] \otimes B(Z_t)\right] \\
+    &= \ev\left[ \underbrace{\ev\left[\rho(Y_t, \theta_0)|Z_t\right]}_{=0\text{ by cond. moment restriction}}   \otimes B(Z_t)\right] \\
+    &= 0
+\end{align*}
+For this argument to hold, it is sufficient to assume that $\ev[\rho_j^2(Y_t,\theta_0)] < \infty$ and $\ev[B_j^2(Z_t)] < \infty$ for each $j$ and $k$. These assumptions allow us to apply the law of iterated expectations because, by Cauchy-Schwarz 
+\begin{align*}
+    \ev | \rho_j(Y_t,\theta_0)B_k(Z_t)| \leq \sqrt{\ev[\rho_j^2(Y_t,\theta_0)]}\sqrt{\ev[B_j^2(Z_t)]} < \infty.
+\end{align*}
+This gives us the unconditional moment restriction for the true values of the parameters $\theta_0:$
+\begin{align}
+    \ev\left[\rho(Y_t, \theta_0) \otimes B(Z_t) \right] = 0 \label{eq:uncond}
+\end{align}
+Of course, this requires choosing a collection of technical instruments. To motivate this consideration, if $\ev[\rho_j(Y_t,\theta)|Z_t]\neq 0$ whenever $\theta \neq \theta_0$ (identification assumption for conditional moment restriction), then we want to choose $B(Z_t)$ to capture deviations from zero in the regression function $f(Z_t) = \ev[\rho_j(Y_t,\theta)|S_t]$ whenever $\theta \neq \theta_0.$ Intuitively, if we can choose $B(Z)$ that are correlated with $f(Z)$ then we are better able to tell apart false parameter values $\theta$ from the true one $\theta_0.$ In practice, this leads to the following recommendations:
+\begin{enumerate}
+    \item Approximation theory suggests that using dictionaries like power transformation, cosine transformations, and wavelets (among others) will reduce approximation error. 
+    \item The dimension of technical instruments $r$ should be small relative to $n$.
+    \item If the model is wrong, we can reinterpret GMM as matching a chosen set of economically important moments. In this case, the choice of technical instruments should be based on economic reasoning,
+\end{enumerate}
+After selecting the technical instruments,we can use the unconditional moment restriction in (\ref{eq:uncond}) to apply the GMM approach with the following score function:
+\begin{align*}
+    g(X_t,\theta) = \rho(Y_t,\theta) \otimes B(Z_t), \qquad X_t \coloneq [Y_t', B(Z_t)']'
+\end{align*}
+
+\paragraph{Weighting matrix:} Before proceeding to estimation, we also need to specify a weighting matrix $A$ and its estimator. The optimal choice of the weighting matrix is $\hat{A}$ such that $\hat{A} \xrightarrow{p} A = \Omega^{-1}$ where $\Omega \coloneq \lim_{n\to\infty} \text{Var}(\sqrt{n}\hat{g}(\theta_0))$ and $\hat{g}(\theta) = \ev_n[g(X_t,\theta)].$ This is made easier by under the rational expectations in the model; in particular, we have 
+\begin{align*}
+    \ev[g(X_{t},\theta_0)g(X_{t-k},\theta_0)']
+    &= \ev[  \ev[g(X_{t},\theta_0)g(X_{t-k},\theta_0)'|X_{t-k}]   ] &&\text{(law of iterated expectations)} \\
+    &= \ev[  \underbrace{\ev[g(X_{t},\theta_0)|X_{t-k}]}_{0}g(X_{t-k},\theta_0)'  ] \\
+    &= 0
+\end{align*}
+There zero follows from the fact that $X_{t-k}$ is a subset of the information available at time $t.$ This simplifies the calculation of the optimal weighting matrix because the sequence of score $\{g(X_t,\theta_0) \}_{t=0}^\infty$ is an uncorrelated sequence. Thus, under the additional assumption that the $\{X_{t}\}_{t=1}^n$ are identically distributed, 
+\begin{align*}
+    \Omega 
+    &\coloneq \lim_{n\to\infty} \text{Var}(\sqrt{n}\hat{g}(\theta_0)) = \text{Var}[g(X,\theta_0)]
+\end{align*}
+Thus, we consider the weighting matrix $\hat{A} = \hat{\Omega}^{-1}$ with 
+\begin{align*}
+    \hat{\Omega}  = \mathbb{V}_n[g(X_t,\tilde{\theta})]
+\end{align*}
+where $\tilde\theta$ is a preliminary estimator of $\theta_0$ (using $A = I$ for example).
+
+\paragraph{Estimation and properties of the estimator:} With this, we are ready for estimation. We form the empirical moment function $\hat{g}(\theta) = \ev_n[g(X_t,\theta)].$ Then, our estimate $\hat{\theta}$ of $\theta_0$ is 
+\begin{align*}
+    \hat{\theta} \in \arg\min_{\theta\in\Theta} \hat{g}(\theta)'\hat{A}\hat{g}(\theta) \l
+\end{align*}
+Under conditions $G$, described below, we have the following properties
+\begin{enumerate}
+    \item The GMM estimator $\hat \theta$ exists; and
+    \item The GMM estimator is approximately linear and Gaussian, 
+    \begin{align*}
+        \sqrt{n}(\hat{\theta} - \theta_0) \approx M \sqrt{n} \hat{g}(\theta_0) \overset{a}{\sim} M\mathcal{N}(0,\Sigma)
+    \end{align*}
+    for $M \coloneq -(G'AG)^{-1}G'A$
+    \item The minimized value of the optimally weighted GMM criterion function times the sample size is asymptotically distributed as $\chi^2$ with $m-d$ degrees of freedom:
+    \begin{align*}
+        J = n \hat{g}(\theta)'\hat{A}\hat{g}(\theta) \overset{a}{\sim} \chi^2(m-d)
+    \end{align*}
+    When $m > d$ (i.e. we have more moment restrictions than parameters), which is the case in this problem, we can use the $J-$statistic to test the null hypothesis of validity of the moment conditions, where the null is $H_o: \exists\theta \in \Theta: g(\theta) = 0$ against the alternative $H_a: \not\exists\theta \in \Theta: g(\theta) = 0.$ The $J$-test statistically rejects the null at the significance level $p$ if $J > (1-p)-$quantile of $\chi^2(m-d).$ For example, one interpretation of the $J$-test in the \cite{hs1982gmm} context is that it is a test of whether there is a representative consumer with power utility and rational expectations. However, we have to be careful, because the rejection of the null could be interpreted as statistical evidence against the assumption of certain instruments being excluded/exogenous as well as the validity of any other modeling assumptions.
+\end{enumerate}
+
+\paragraph{Condition $G$:}
+Below we state the conditions needed to arrive at the properties above. Then we discuss primitive regularity conditions that imply $G$ in the \cite{hs1982gmm} case.
+\begin{enumerate}
+    \item The parameter space $\Theta$ is a compact subset of $\R^d$ and the true value $\theta_0$ is in the interior of $\Theta.$
+    \item Global identification: $g(\theta) = 0 \iff \theta = \theta_9$
+    \item The empirical moment map $\theta \mapsto \hat{g}(\theta)$ converges uniformly in probability to the population moment map $\theta \mapsto g(\theta):$
+    \begin{align*}
+        \sup_{\theta \in \Theta} || \hat{g}(\theta) - g(\theta) || \xrightarrow{p} 0
+    \end{align*}
+    \item The estimator of the weighting matrix is consistent for a symmetric positive definite matrix, $\hat A \xrightarrow{p} A > 0.$
+    \item The empirical Jacobian $\theta \mapsto \hat{G}(\theta) = \frac{\partial}{\partial \theta'}\hat{g}(\theta)$ is continuous and is uniformly consistent for the continuous population Jacobian matrix $\theta \mapsto G(\theta) = \frac{\partial}{\partial \theta'}g(\theta)$, namely
+    \begin{align*}
+        \sup_{\theta \in \Theta} || \hat{G}(\theta) - G(\theta) || \xrightarrow{p} 0
+    \end{align*}
+    \item The minimal eigenvalues of $G'G$ is bounded away from 0, where $G = G(\theta_0).$
+    \item The empirical moment function evaluated at the true parameter value obeys a central limit theorem:
+    \begin{align*}
+        \sqrt{n}\hat{g}(\theta_0) \overset{a}{\sim} \mathcal{N}(0,\Omega)
+    \end{align*}
+\end{enumerate}
+
+\paragraph{Discussion:}
+
+Condition (1) importantly requires that there does indeed exist a true parameter value $\theta_0 \in \Theta$ such that $g(\theta_0) = 0.$ This involves careful economic thinking and modeling. Compactness is useful in justifying the existence of a minimum and verifying uniform convergence. Imposing that the true parameter is in the interior of the parameter space allows us to perform a Taylor expansion of the first order conditions. 
+
+Next, we impose global identification with condition (2) and ``local identification'' with condition (6), which says that the minimal eigenvalue of $G'G$ is bounded away from zero and is equivalent to $\text{rank}(G) = \text{full}.$ In linear GMM, global identification and $\text{rank}(G) = \text{full}$ are equivalent, but here they are not.  For example, consider $g(\theta) = \theta^2 - 4.$ Then $g(\theta) = 0$ if $\theta = 2 \text{ or } -2.$ If the true value is $\theta_0 = 2,$ then $G(\theta_0) = 2\theta_0 = 4.$ Thus, we have $\text{rank}(G) = \text{full}$ but not global identification.  
+
+Conditions (3) and (5) impose uniform convergence in probability on $\hat{g}(\theta)$ and $\hat{G}(\theta)$ to the population maps $g(\theta)$ and $G(\theta).$ These conditions, which are stronger than pointwise convergence, are required to establish consistency and asymptotic normality of the GMM estimator. To justify these uniform convergence we can rely on the primitive conditions needed to invoke the uniform law of large numbers ULLN). In particular, suppose that (a) $\Theta$ is compact, (b) $g(X,\theta)$ is continuously differentiable with derivative $G(X,\theta)$, (c) $\ev\sup_{\theta\in\Theta}||g(X,\theta)|| < \infty$ and  $\ev\sup_{\theta\in\Theta}||g(X,\theta)|| < \infty$, (d) and that the $\{X_i\}$ are i.i.d or stationary strongly mixing series. Then the ULLN says that 
+\begin{align*}
+    \sup_{\theta \in \Theta} || \hat{g}(\theta) - g(\theta) || \xrightarrow{p} 0 
+    \qquad 
+    \sup_{\theta \in \Theta} || \hat{G}(\theta) - G(\theta) || \xrightarrow{p} 0 
+\end{align*}
+Verifying the primitives of the ULLN warrants a discussion of the strongly mixing condition. Intuitively, strong mixing formalizes the idea that far apart observations (of consumption growth, stock returns, and bond returns in our case) are almost independent. To formalize this, define the past and future $\sigma$-fields
+\begin{align*}
+    \mathcal{A}_m \coloneq \sigma(X_t: t \leq m) \qquad \mathcal{B}_{m+j} \coloneq \sigma(X_t: t\geq m+j)
+\end{align*}
+The \textit{alpha-mixing} coefficient at lag $j$ is 
+\begin{align*}
+    \alpha_j \coloneq \sup_m \sup_{A \in\mathcal{A}, B \in \mathcal{B}} |P(A \cap B) - P(A)P(B)|
+\end{align*}
+The sequence $\{X_t\}_{t=-\infty}^{\infty}$ is strongly mixing if $\alpha_j \to 0$ as $j \to \infty.$ As discussed in class, many stationary stochastic processes have been demonstrated to be strongly mixing and is reasonable in this application. 
+
+Condition (7) requires a central limit theorem for the empirical average of the scores. In particular, we invoke Gordin's CLT. Suppose the centered sequence $\{g(X_i,\theta_0)\}_{i=1}^\infty$ is iid or stationary and strongly mixing with mixing coefficients that obey $\sum_{j=1}^{\infty}\alpha_j^{\delta/(2+\delta)} < \infty$ and suppose that $\ev||g(X,\theta) ||^{2+\delta} < \infty$ for some $\delta > 0.$ Then 
+\begin{align*}
+    \sqrt{n} \ev_n [g(X_i,\theta_0)] \overset{a}{\sim} \mathcal{N}(0,\Omega)\qquad \Omega = \lim_{n\to\infty} \text{Var}(\sqrt{n}\ev_ng(X_i,\theta_0))
+\end{align*}
+If $\{g(X_i,\theta_0)\}_{i=1}^\infty$ is an uncorrelated sequence, as is the case under iid sampling, the asymptotic variance simplifies to 
+\begin{align*}
+    \Omega = \ev g(X,\theta_0)g(X,\theta_0)'
+\end{align*}
+and can be consistently estimated by 
+\begin{align*}
+    \hat{\Omega} = \ev_n g(X,\hat{\theta})g(X,\hat{\theta})
+\end{align*}
+As we showed above, under rational expectations, the sequence of scores is an uncorrelated sequence, so we can use the formula above. If $\{g(X_i,\theta_0)\}_{i=1}^\infty$ is not uncorrelated, the asymptotic variance is 
+\begin{align*}
+    \Omega = \Sigma_{0} + \sum_{\ell=1}^{\infty}(\Sigma_\ell + \Sigma_\ell') \qquad \Sigma_\ell = \ev g(X_i,\theta_0)g(X_{i+\ell},\theta_0)
+\end{align*}
+which can be estimated via the methodology of Newey-West
+\begin{align*}
+    \hat{\Omega} = \hat{\Sigma}_0 + \sum_{\ell = 1}^L \omega_{\ell L}(\hat{\Sigma}_{\ell} + \hat{\Sigma}_{\ell}') \qquad \hat{\Sigma}_{\ell} = \frac{1}{n}\sum_{i=1}^{n - \ell}g(X_i,\hat{\theta})g(X_i,\hat{\theta})'
+\end{align*}
+where $\omega_{\ell L} = 1 - \ell/(L+1)$ and $L = L_n$ is a tuning parametery such that $L_n \to \infty$ and $L_n/n^{1/4} \to 0$ as $n\to\infty.$
+
+Finally, the condition that the minimal eigenvalue of $G'G$ is bounded away from 0 to ensure that the minimal eigen value of $G'AG$ is greater than 0. This is important for the asymptotic result that $\sqrt{n}(\hat{\theta} - \theta_0) \approx M \sqrt{n} \hat{g}(\theta_0) \overset{a}{\sim}$ for $M \coloneq -(G'AG)^{-1}G'A.$ Intuitively, mineig($G'AG$) measures how well $\theta_0$ is identified.
+
 
 
 \end{solution}
@@ -249,11 +462,83 @@ For example, in
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \begin{problem}{5.6}
-
+Using the data provided, provide GMM-based estimation and specification testing for the consumption CAPM model along the lines of Section 4.5, with the difference being that
+you try (a) using only $B(Z_t) = 1$ as the technical instrument (this should give us $m = d$) and (b) only using $B(Z_t) = (1,R_{1,t},R_{2,t})'$ as technical instruments. You can begin by replicating Section 4.5 (we used gmm package in R; if you use different packages, the results may differ, but hopefully not by much), but please don’t report the replication results. Provide detailed explanations for what you are doing; the Hansen and Singleton’s article is a good example of how you could write things up.
 \end{problem}
 
 \begin{solution}{5.6}
+We now provide GMM-based estimation and specification testing for the consumption capital asset pricing model (CCAPM). Recall from problem 5.4 above that the optimizing behavior of the representative agent with power utility and imply the conditional moment conditions 
+\begin{align*}
+    \ev\left[R_{j,t+1}\beta c_{t+1}^{-\alpha} - 1 | Z_t\right] = 0 \qquad j = 1, \ldots, J
+\end{align*}
+where $R_{j,t+1}$ is the gross return on asset $j$, $c_{t+1} = C_{t+1}/C_t$  is the total rate of consumption growth, $\beta$ is the represetnative agent's dicsount rate, and $\alpha$ is her coefficient of relative risk aversion from a power utility function. In this implementation, we consider $J=2$ assets, the S\&P 500 and a 1-year Treasury bond. Let $Y_t = \{c_{t+1}, R_{1, t+1}, R_{2,t+1} \}$ collect observables, and then define
+\begin{align*}
+    \rho(Y_t, \theta) \coloneq \left[\rho_j(Y_t,\theta) \right]_{j=1}^J \coloneq \left[R_{j,t+1}bc_{t+1}^{-a} - 1 \right] \qquad \theta = (a,b)'
+\end{align*}
+Letting $\theta_0 \coloneq(\alpha,\beta)$ be the vector of true parameters, we have the conditional moment restrictions
+\begin{align*}
+    \ev[\rho(Y_t,\theta_0) | Z_t] = 0
+\end{align*}
+Converting the conditional moment restriction to unconditional moment restrictions, we set up of vector of technical instruments $B(Z_t)$ which transform $Z_t$ as follows
+\begin{align*}
+    B(Z_t) \coloneq [B_1(Z_t), \ldots,B_r(Z_t)]' \in \R^r
+\end{align*}
+In this implementation, we will consider two sets of technical instruments
+\begin{enumerate}[label=(\alph*),leftmargin=2cm]
+    \item $B(Z_t) = 1$
+    \item $B(Z_t) = (1,R_{1,t},R_{2,t})'$
+\end{enumerate}
+As proved in problem 5.4, the law of iterated expectations\footnote{For this argument to hold, it is sufficient to assume that $\ev[\rho_j^2(Y_t,\theta_0)] < \infty$ and $\ev[B_j^2(Z_t)] < \infty$ for each $j$ and $k$. These assumptions allow us to apply the law of iterated expectations because, by Cauchy-Schwarz $\ev | \rho_j(Y_t,\theta_0)B_k(Z_t)| \leq \sqrt{\ev[\rho_j^2(Y_t,\theta_0)]}\sqrt{\ev[B_j^2(Z_t)]} < \infty.$} and the conditional moment restriction gives us
+\begin{align*}
+    \ev\left[\rho(Y_t, \theta_0) \otimes B(Z_t) \right] 
+    = \ev\left[ \underbrace{\ev\left[\rho(Y_t, \theta_0)|Z_t\right]}_{=0}   \otimes B(Z_t)\right] 
+    &= 0
+\end{align*}
+Thus, we have our unconditional moment restriction.
 
+\paragraph{Estimation procedure}
+After selecting the technical instruments,we can use the unconditional moment restriction  to apply the GMM approach with the following score function:
+\begin{align*}
+    g(X_t,\theta) = \rho(Y_t,\theta) \otimes B(Z_t), \qquad X_t \coloneq [Y_t', B(Z_t)']'
+\end{align*}
+To estimate, we also need to specify a weighting matrix $A$ and a consistent estimator $\hat{A}.$ Under the conditions for Gordon's CLT discussed in 5.4, the optimal weighting matrix is $A \coloneq \Omega^{-1}$ where
+\begin{align*}
+    \Omega \coloneq \lim_{n\to\infty} \text{Var}(\sqrt{n}\ev_ng(X_i,\theta_0))
+\end{align*}
+Under the rational expectations hypotheses, as we proved above, the stream od scores $\{g(X_t,\theta_0 \}_{t=0}^\infty$ is an uncorrelated sequence by the law of iterated expectations. Thus, we can make the simplification
+\begin{align*}
+    \Omega \coloneq \lim_{n\to\infty} \text{Var}(\sqrt{n}\ev_ng(X_i,\theta_0)) = \text{Var}\left[g(X,\theta_0)\right]
+\end{align*}
+As an estimator we use
+\begin{align*}
+    \hat{\Omega} =  \mathbb{V}_n[g(X_t,\tilde{\theta})]
+\end{align*}
+where $\tilde\theta$ is a preliminary estimator of $\theta_0$ (using $A = I$ for example).
+
+\medskip
+
+To obtain our GMM estimate we use the iterative version of the two-step GMM approach in the R` package \verb|gmm|:
+\begin{enumerate}
+    \item Initialize $\hat{A} = I$ and obtain a preliminary estimate $\hat{\theta}^{(0)} = \arg\min_{\theta\in\Theta} \hat{g}(\theta)\hat{A}\hat{g}(\theta)$
+    \item Calculate $\hat{\Omega}(\hat{\theta}^{(0)}) = \mathbb{V}_n[g(X_t,\hat{\theta}^{(0)})]$
+    \item Update the GMM estimator by $\hat{\theta}^{(1)} = \arg\min_{\theta\in\Theta} \hat{g}(\theta)\left[ \hat{\Omega}(\hat{\theta}^{(0)})\right]^{-1}\hat{g}(\theta)$ 
+    \item If $||\hat{\theta}^{(0)} - \hat{\theta}^{(1)}||/(1+||\hat{\theta}^{(0)}||) < \varepsilon$ proceed to (5); else, set $\hat{\theta}^{(0)} = \hat{\theta}^{(1)}$ and go to step (2). Here $\varepsilon$ is a user defined tolerance level and we use the default value $\varepsilon  = 10^{-7}$
+    \item The iterative GMM estimator is $\hat{\theta} = \hat{\theta}^{(1)}$
+\end{enumerate}
+
+For robustness to weak identification, we also present results for the continuously updated GMM estimator (CUE). The CUE takes the form 
+\begin{align*}
+    \hat{\theta}^* \in \arg\min_{\theta\in\Theta}\hat{g}(\theta)\hat{A}(\theta)\hat{g}(\theta) \qquad \hat{A}(\theta) = \hat{\Omega}(\theta)^{-1} \qquad \hat{\Omega}(\theta) = \hat{\text{Var}}(\sqrt{n}\hat{g}(\theta))
+\end{align*}
+Intuitively, this approach an inverse of a variance matrix that is directly indexed by $\theta$ and thus avoids iteration. The inverse variance matrix is treated as a function or $\theta$ and is allowed to change when the numerical derivatives are computed within the optimization algorithm. Under the rational expectations hypothesis, we use $\hat{\Omega}(\Theta) = \mathbb{V}_n[g(X_t,\theta)]$
+
+
+\paragraph{Estimation results} We now provide GMM estimates of $\alpha$ and $\beta$ from the CCAPM model using monthly data on total consumption growth, gross S\&P 500 returns, and gross 1-year Treasury bond returns. The data is monthly and runs from 1959 to 2015. We report estimates for two sets of technical instruments 
+\begin{enumerate}[label=(\alph*),leftmargin=2cm]
+    \item $B(Z_t) = 1$
+    \item $B(Z_t) = (1,R_{1,t},R_{2,t})'$
+\end{enumerate}
+For each set of technical instruments we report results using iterative GMM (labeled GMM) and CUE (labeled CUE). 
 
 \end{solution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -266,20 +551,20 @@ For example, in
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{problem}{6.1}
-
+Explain in exactly one page why empirical bootstrap works for the sample mean and why empirical bootstrap works for GMM (you can use “quick" bootstrap for this purpose).
 \end{problem}
 
-\begin{solution}{6.1}
+\begin{solution}{6.1 (Matej)}
 
 
 \end{solution}
 
 
 \begin{problem}{6.2}
-
+Obtain bootstrap standard errors for the Hansen and Singleton example analyzed in Chapter 5, but modify the technical instruments (as in problem 6 in Chapter 5). Obtain a bootstrap based confidence interval for the risk aversion parameter in that example.
 \end{problem}
 
-\begin{solution}{6.2}
+\begin{solution}{6.2 (Matej)}
 
 
 \end{solution}
