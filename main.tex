@@ -195,8 +195,11 @@ Then we have that
     \[0 = \hat{G}'\hat{A}\hat{g}(\hat{\theta})\]
     The FOC characterizes the optimum as the objective function is quadratic. We can substitute in $\hat{g}(\hat{\theta}) = \hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)$.
     \[0 = \hat{G}'\hat{A}\left(\hat{g}(\theta_0) + \hat{G}(\hat{\theta} - \theta_0)\right)\]
-   Since $G$ has full column rank and $A>0$, $G'AG$ is invertible. Since $\hat{G} \to^p G$ and $\hat{A} \to^p A$, by the continuous mapping theorem $\hat{G}'\hat{A}\hat{G}$ is invertible with probability approaching one. We will next show that with probability approaching $1$, we can solve these equations for the deviation of the estimator from the estimand. 
-    \[\sqrt{n}(\hat{\theta}-\theta_0) = \hat{M}\sqrt{n}\hat{g}(\theta_0)\] where $\hat{M} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}$. By the LLN and the continuous mapping theorem, we have $\hat{M} = M + o_p(1)$ where $M=-(G'AG)^{-1}G'A$. This gives us the result that 
+   Since $G$ has full column rank and $A>0$, $G'AG$ is invertible. Since $\hat{G} \to^p G$ and $\hat{A} \to^p A$, by the continuous mapping theorem $\hat{G}'\hat{A}\hat{G}$ is invertible with probability approaching one. We will next show that with probability approaching $1$, we can solve these equations for the deviation of the estimator from the estimand.
+   \[\hat{\theta}-\theta_0 = -(\hat{G}'\hat{A}G')^{-1}(\hat{G}'\hat{A}\hat{g}(\theta_0))\]
+   \[\hat{\theta}-\theta_0 = \hat{M}\hat{g}(\theta_0))\]
+   Where $M=-(G'AG)^{-1}G'A$. Multiplying by $\sqrt{n}$ we get 
+    \[\sqrt{n}(\hat{\theta}-\theta_0) = \hat{M}\sqrt{n}\hat{g}(\theta_0)\]  By the LLN and the continuous mapping theorem, we have $\hat{M} = M + o_p(1)$. This gives us the result that 
     \[\sqrt{n}(\hat{\theta}- \theta_0) = (M+o_p(1))\sqrt{n}\hat{g}(\theta_0)\]
     By Slutsky's theorem, and that by CLT $\sqrt{n}\hat{g}(\theta_0) \sim^a N(0, \Omega)$ we get
     \[\sqrt{n}(\hat{\theta} - \theta_0) \sim^a MN(0, \Omega) = N(0, M\Omega M') = N(0, V_A)\]
@@ -227,18 +230,19 @@ There are two approaches to GMM, limited and full information. The limited infor
 A =
 \left[
 \begin{array}{cc}
-\operatorname{Var}\, g_1(X,\alpha) & 0 \\
-0 & \operatorname{Var}\, g_2(X,\alpha)
+\operatorname{Var}\, g_S(X,\alpha) & 0 \\
+0 & \operatorname{Var}\, g_D(X,\alpha)
 \end{array}
 \right]^{-1},
 \]
-\[\theta_{LI} = \]
+\[\theta_{LI}  = \begin{bmatrix} -(\hat{G}_S'A_S\hat{G}_S)^{-1}\hat{G}_S'A_S\hat{g}_S(\theta_0^S) \\ -(\hat{G}_D'A_D\hat{G}_D)^{-1}\hat{G}_D'A_D\hat{g}_D(\theta_0^D) \end{bmatrix} \]
+Where $A_S$ is the weighting matrix for supply and $\theta_0^S$ is the true parameter vector for supply. Similarly $A_D$ is the weighting matrix for demand and $\theta_0^D$ is the true parameter vector for demand.
 However, in the full information case, we use the optimal weighting matrix. 
 \[A= [Var(g(X,\theta))]^{-1}\]
-\[\theta_{FI} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}\hat{g}(0)\]
+\[\theta_{FI} = -(\hat{G}'\hat{A}\hat{G})^{-1}\hat{G}'\hat{A}\hat{g}(\theta_0)\]
 
 
-Empirically, researchers often use the limited information approach despite the efficiency loss as it more robust to misspecification (which is inevitable in empirical studies).
+Empirically, researchers often use the limited information approach despite the efficiency loss as it more robust to misspecification (which is inevitable in empirical studies). The intuition is that by estimating separately misspecification in the supply block cannot effect estimation in the demand block and vice versa. Obviously the two approaches are equivalent when the optimal weighting matrix is already block diagonal.
 
 
         
@@ -538,7 +542,34 @@ Intuitively, this approach an inverse of a variance matrix that is directly inde
     \item $B(Z_t) = 1$
     \item $B(Z_t) = (1,R_{1,t},R_{2,t})'$
 \end{enumerate}
-For each set of technical instruments we report results using iterative GMM (labeled GMM) and CUE (labeled CUE). 
+For each set of technical instruments we report results using iterative GMM (labeled GMM) and CUE (labeled CUE). The results are shown in Table (\ref{tab:ccapm_coefs}). With $B(Z_t) = 1,$ the estimates for $\beta$ are slightly below 1, while they are slightly above one when we add lagged stock returns and lagged bond returns to the technical instruments. The estimates for $\alpha$ very more widely, especially in the case with $B(Z_t) = 1$: the iterative GMM procedure yields and estimate for $\alpha$ of 1 compared to 32.4 for CUE, consistent with statistical misspecification of the model.
+
+\begin{table}[H]
+    \centering
+    \caption{GMM estimation of $\alpha$ and $\beta$}
+    \label{tab:ccapm_coefs}
+    \input{output/ccapm_hw_coefs}
+\end{table}
+
+\paragraph{Specification testing}
+Under condition $G$, discussed in problem 5.4, The minimized value of the optimally weighted GMM criterion function times the sample size is asymptotically distributed as $\chi^2$ with $m-d$ degrees of freedom:
+\begin{align*}
+    J = n \hat{g}(\theta)'\hat{A}\hat{g}(\theta) \overset{a}{\sim} \chi^2(m-d)
+\end{align*}
+When $m > d$ (i.e. we have more moment restrictions than parameters),  we can use the $J-$statistic to test the null hypothesis of validity of the moment conditions:
+\begin{align*}
+    H_o: \exists\theta \in \Theta: g(\theta) = 0 \qquad H_a: \not\exists\theta \in \Theta: g(\theta) = 0
+\end{align*}
+The $J$-test statistically rejects the null at the significance level $p$ if $J > (1-p)-$quantile of $\chi^2(m-d).$ When $B(Z_t) = 1$, we have 2 moment conditions and 2 unkonown parameter, so $m = d$ and we cannot conduct the $J$-test. However, for $B(Z_t) = (1,R_{1,t},R_{2,t})'$ we have $m = 6$ moments (2 assets $\times$ 3 technical instruments), so we can conduct a $J$-test with $6-2 = 4$ degrees of freedom on the $\chi^2.$ The results are reported in Table (\ref{tab:ccapm_j}). With both iterative GMM and CUE, we fail to reject the null hypothesis for reasonable significance levels. The failure to reject may partly reflect limited power of the $J$-test, as our instrument set $B(Z_t) = (1,R_{1,t},R_{2,t})'$ is relatively parsimonious---richer instrument sets including multiple lags of consumption growth and returns would provide more overidentifying restrictions and thus greater power to detect misspecification. Indeed, when adding $c_t$ to the technical instrument set, we obtain a $J$-statistic of 213 for iterative GMM and 52 for CUE, strongly rejecting the model.
+
+\begin{table}[H]
+    \centering
+    \caption{$J$-test with $B(Z_t) = (1,R_{1,t},R_{2,t})'$}
+    \label{tab:ccapm_j}
+    \input{output/ccapm_hw_J}
+\end{table}
+
+
 
 \end{solution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -565,6 +596,7 @@ Obtain bootstrap standard errors for the Hansen and Singleton example analyzed i
 \end{problem}
 
 \begin{solution}{6.2 (Matej)}
+
 
 
 \end{solution}
