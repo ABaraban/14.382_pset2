@@ -251,7 +251,8 @@ ggplot(mapping = aes(x=x)) +
     title = "Z = (Constant)",
     x="", y=""
   ) +
-  theme_minimal()
+  theme_minimal()+
+  theme(plot.title = element_text(size = 9))
 ggsave("output/bs_plot1.png", width = 4, height = 3, units = "in")
 
 
@@ -261,7 +262,8 @@ ggplot(mapping = aes(x=x)) +
     title = "Z = (Constant, Bond Returns, Stock Returns)",
     x="", y=""
   ) +
-  theme_minimal()
+  theme_minimal()+
+  theme(plot.title = element_text(size = 9))
 ggsave("output/bs_plot2.png", width = 4, height = 3, units = "in")
 
 
@@ -271,7 +273,8 @@ ggplot(mapping = aes(x=x)) +
     title = "Z = (Constant, Consumption, Bond Returns, Stock Returns)",
     x="", y=""
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(plot.title = element_text(size = 9))
 ggsave("output/bs_plot3.png", width = 4, height = 3, units = "in")
   
 
